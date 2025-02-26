@@ -9,3 +9,7 @@ body {
     border-radius: 15px;
     padding: 2px;
 }
+
+.right-align {
+    text-align: right;
+}

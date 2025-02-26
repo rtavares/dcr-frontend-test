@@ -168,15 +168,16 @@ function drawTable(dataType, selectedMetric, data) {
 
     // Add the new rows
     data.forEach(item =>{
-         const row = document.createElement('tr');
+         const row = document.createElement('tr')
 
         // Add data to the row
-        const dataScope = document.createElement('td');
-        dataScope.textContent = item.name;
-        row.appendChild(dataScope);
+        const dataScope = document.createElement('td')
+        dataScope.textContent = item.name
+        row.appendChild(dataScope)
 
-        const dataValue = document.createElement('td');
-        dataValue.textContent = item.value
+        const dataValue = document.createElement('td')
+        dataValue.textContent = Number(item.value).toLocaleString()
+        dataValue.classList.add('right-align')
         row.appendChild(dataValue);
 
         tableBody.appendChild(row);
