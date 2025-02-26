@@ -18,9 +18,11 @@ Tech task specifications: [Original README](docs/TECH_TASK_SPECS_README.md) .
 ### Exercise 1 - Form and chart
 - Added the form for selection
 - Added the D3 buble chart drawing, based on user input on selection options.
+- Added a color picker to allow to change the bubbles colors.
   - TO-DO: 
     - Add a zoom option
-    - Add a color picker to allow to change the bubbles colors.
+    - Update the chart when the color changes in the color picker
+    
  
 ### Exercise 2 - Display as a table
 - Added the display of the same data selected to the chart on table format.
