@@ -47,9 +47,10 @@ function updateChart(dataType) {
         return
     }
 
-    let processedData = dataType === "country" ? processCountryData(selectedMetric) : processRegionData(selectedMetric);
-            drawBubbleChart(processedData);
-            drawTable(dataType, selectedMetric, processedData);
+    let processedData = dataType === "country" ? processCountryData(selectedMetric) : processRegionData(selectedMetric)
+    let bubbleColor = document.getElementById("bubbleColor").value;
+    drawBubbleChart(processedData, bubbleColor);
+    drawTable(dataType, selectedMetric, processedData);
         }
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -83,7 +84,7 @@ function processRegionData(metric) {
 }
 // ---------------------------------------------------------------------------------------------------------------------
 
-function drawBubbleChart(data) {
+function drawBubbleChart(data, color) {
     let svg = d3.select("#bubbleChart");
     svg.selectAll("*").remove();
 
@@ -106,7 +107,7 @@ function drawBubbleChart(data) {
         .enter()
         .append("circle")
         .attr("r", d => bubbleScale(d.value))
-        .attr("fill", "steelblue")
+        .attr("fill", color)
         .attr("stroke", "black")
         .attr("stroke-width", 1.5);
 
