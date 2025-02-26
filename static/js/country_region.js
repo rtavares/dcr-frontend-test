@@ -1,9 +1,18 @@
+let countriesData = []; // Stores the JSON data
+
+// Load JSON file
+fetch("data/countries.json")
+    .then(response => response.json())
+    .then(data => {
+        countriesData = data;
+    })
+    .catch(error => console.error("Error loading JSON:", error));
+
 document.addEventListener("DOMContentLoaded", function () {
     const byCountry = document.getElementById("byCountry")
     const byRegion = document.getElementById("byRegion")
     const countryOptions = document.getElementById("countryOptions")
     const regionOptions = document.getElementById("regionOptions")
-    const generateChartBtn = document.getElementById("generateChart")
 
     function toggleOptions() {
         if (byCountry.checked) {
@@ -18,8 +27,117 @@ document.addEventListener("DOMContentLoaded", function () {
     byCountry.addEventListener("change", toggleOptions)
     byRegion.addEventListener("change", toggleOptions)
 
-
-
-
-
+    // countryOptions.addEventListener("change", updateChart('country'))
 })
+
+function updateChart(dataType) {
+    let selectedMetric = ""
+
+    if (dataType === 'country') {
+        selectedMetric = document.getElementById("countryDataSelection").value;
+    } else if (dataType === 'region') {
+        selectedMetric = document.getElementById("regionDataSelection").value;
+    }
+
+
+    if (selectedMetric === "") {
+        // Null option selected. Reset chart.
+        let svg = d3.select("#bubbleChart")
+        svg.selectAll("*").remove()
+
+        return
+    }
+
+    let processedData = dataType === "country" ? processCountryData(selectedMetric) : processRegionData(selectedMetric);
+            drawBubbleChart(processedData);
+        }
+
+        function processCountryData(metric) {
+            return countriesData.map(country => {
+                let value = metric === "population" ? country.population
+                    : metric === "borders" ? (country.borders ? country.borders.length : 0)
+                    : metric === "timezones" ? country.timezones.length
+                    : country.languages.length;
+
+                return { name: country.name, value };
+            }).filter(d => d.value > 0);
+        }
+
+        function processRegionData(metric) {
+            let regionMap = {};
+
+            countriesData.forEach(country => {
+                let region = country.region;
+                if (!regionMap[region]) {
+                    regionMap[region] = { count: 0, timezones: new Set() };
+                }
+                regionMap[region].count += 1;
+                country.timezones.forEach(tz => regionMap[region].timezones.add(tz));
+            });
+
+            return Object.entries(regionMap).map(([name, data]) => ({
+                name,
+                value: metric === "countriesInRegion" ? data.count : data.timezones.size
+            }));
+        }
+
+        function drawBubbleChart(data) {
+            let svg = d3.select("#bubbleChart");
+            svg.selectAll("*").remove();
+
+            let width = svg.attr("width");
+            let height = svg.attr("height");
+
+            let bubbleScale = d3.scaleSqrt()
+                .domain([1, d3.max(data, d => d.value)])
+                .range([10, 80]);
+
+            let simulation = d3.forceSimulation(data)
+                .force("x", d3.forceX(width / 2).strength(0.1))
+                .force("y", d3.forceY(height / 2).strength(0.1))
+                .force("collide", d3.forceCollide(d => bubbleScale(d.value) + 2))
+                .force("charge", d3.forceManyBody().strength(-15))
+                .on("tick", ticked);
+
+            let nodes = svg.selectAll("circle")
+                .data(data)
+                .enter()
+                .append("circle")
+                .attr("r", d => bubbleScale(d.value))
+                .attr("fill", "steelblue")
+                .attr("stroke", "black")
+                .attr("stroke-width", 1.5);
+
+            let labels = svg.selectAll("g")
+                .data(data)
+                .enter()
+                .append("g")
+                .attr("text-anchor", "middle");
+
+            labels.append("text")
+                .attr("dy", "-0.4em")
+                .attr("fill", "white")
+                .attr("font-weight", "bold")
+                .attr("font-size", "12px")
+                .text(d => d.name.length > 10 ? d.name.slice(0, 8) + "…" : d.name);
+
+            labels.append("text")
+                .attr("dy", "1.2em")
+                .attr("fill", "white")
+                .attr("font-size", "10px")
+                .text(d => formatNumber(d.value));
+
+            function ticked() {
+                nodes.attr("cx", d => d.x)
+                     .attr("cy", d => d.y);
+
+                labels.attr("transform", d => `translate(${d.x},${d.y})`);
+            }
+        }
+
+        function formatNumber(num) {
+            if (num >= 1e6) return (num / 1e6).toFixed(1) + "M";
+            if (num >= 1e3) return (num / 1e3).toFixed(1) + "K";
+            return num;
+        }
+

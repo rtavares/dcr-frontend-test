@@ -1,0 +1,11 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+.chart-container {
+    display: flex;
+    justify-content: center;
+    border: 1px solid lightgray;
+    border-radius: 15px;
+    padding: 2px;
+}
